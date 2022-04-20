@@ -1,5 +1,7 @@
 drop table if exists temp_employee, temp_customers, temp_city, temp_state
 go
+-- category data
+insert into categories (name) values ('processor'), ('video card'), ('memory')
 -- employee data
 create table temp_employee
 (city varchar(30),
@@ -100,5 +102,27 @@ go
 alter table customers alter column city int not null
 alter table customers alter column state int not null
 go
-select * from states
-select * from city
+-- processor data
+drop table if exists proci
+create table proci (name varchar(50), codename varchar(20), cores varchar(10), clock varchar(20), socket varchar(20), process varchar(10), L3 varchar(10), tdp varchar(10), release varchar(30))
+go
+BULK INSERT dbo.proci
+FROM 'C:\Users\fallo\Desktop\webshop\data\proc.txt'
+WITH
+(ROWTERMINATOR = '\n',
+FIRSTROW=2)
+GO
+-- vga data
+drop table if exists vga
+create table vga (name varchar(30), gpu varchar(15), release varchar(30), bus varchar(20), mem varchar(30), clock varchar(15), shaders varchar(50))
+go
+bulk insert dbo.vga
+from 'C:\Users\fallo\Desktop\webshop\data\vga.txt'
+with
+(rowterminator = '\n',
+firstrow=2)
+go
+insert into products (name, category_id) select name, 1 from proci
+insert into products (name, category_id) select name, 2 from vga
+drop table if exists proci, vga, teszt
+go
