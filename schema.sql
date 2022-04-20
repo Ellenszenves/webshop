@@ -1,8 +1,13 @@
 -- drop tables for clean start
-DROP TABLE IF EXISTS memory, processor, employee, customers, order_list, orders, categories, products, city
-DROP TABLE IF EXISTS proci, vga, teszt
+DROP TABLE IF EXISTS memory, processor, employee, customers, order_list, orders, categories, products, city, states
+DROP TABLE IF EXISTS proci, vga, teszt, cities, hu
 go
 -- create tables
+CREATE TABLE states (
+id int NOT NULL identity(1,1),
+name varchar(30),
+CONSTRAINT PK_state PRIMARY KEY (id));
+go
 CREATE TABLE city (
 id int NOT NULL identity(1,1),
 name varchar(30),
@@ -38,7 +43,8 @@ id int NOT NULL identity(1,1),
 firstName varchar(20),
 lastName varchar(20),
 address varchar(50),
-city_id int NOT NULL,
+city varchar(30),
+state varchar(30),
 phone varchar(20),
 email varchar(50),
 CONSTRAINT PK_customer PRIMARY KEY (id));
@@ -48,7 +54,8 @@ id int NOT NULL identity(1,1),
 firstName varchar(30),
 lastName varchar(30),
 address varchar(50),
-city_id int NOT NULL,
+city varchar(30),
+state varchar(30),
 phone varchar(20),
 email varchar(50),
 CONSTRAINT PK_employee PRIMARY KEY (id));
@@ -73,5 +80,3 @@ alter table products add constraint FK_productCat foreign key (category_id) refe
 alter table orders add constraint FK_customer_id foreign key (customer_id) references customers(id)
 alter table orders add constraint FK_employee_id foreign key (employee_id) references employee(id)
 alter table order_list add constraint FK_productid foreign key (product_id) references products(id)
-alter table customers add constraint FK_cityid foreign key (city_id) references city(id)
-alter table employee add constraint FK_employeecityid foreign key (city_id) references city(id)
