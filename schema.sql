@@ -1,8 +1,13 @@
 -- drop tables for clean start
-DROP TABLE IF EXISTS memory, processor, employee, customers, order_list, orders, categories, products, city, states
+DROP TABLE IF EXISTS memory, processor, order_list, orders, products, city, states, employee, customers, categories, title
 DROP TABLE IF EXISTS proci, vga, teszt, cities, hu
 go
 -- create tables
+create table title (
+id int not null identity(1,1),
+name varchar(30),
+constraint PK_title primary key (id));
+go
 CREATE TABLE states (
 id int NOT NULL identity(1,1),
 name varchar(30),
@@ -30,6 +35,7 @@ CREATE TABLE orders (
 id int UNIQUE NOT NULL,
 customer_id int,
 employee_id int,
+order_date datetime default getdate(),
 CONSTRAINT PK_order PRIMARY KEY (id));
 go
 CREATE TABLE order_list (
@@ -42,9 +48,10 @@ CREATE TABLE customers (
 id int NOT NULL identity(1,1),
 firstName varchar(20),
 lastName varchar(20),
-address varchar(50),
-city varchar(30),
-state varchar(30),
+street varchar(50),
+str_number int not null,
+city_id int not null,
+state_id int not null,
 phone varchar(20),
 email varchar(50),
 CONSTRAINT PK_customer PRIMARY KEY (id));
@@ -53,11 +60,13 @@ CREATE TABLE employee (
 id int NOT NULL identity(1,1),
 firstName varchar(30),
 lastName varchar(30),
-address varchar(50),
-city varchar(30),
-state varchar(30),
+street varchar(50),
+str_number int not null,
+city_id int not null,
+state_id int not null,
 phone varchar(20),
 email varchar(50),
+title_id int not null,
 CONSTRAINT PK_employee PRIMARY KEY (id));
 go
 CREATE TABLE processor (
