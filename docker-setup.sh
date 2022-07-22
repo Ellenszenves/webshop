@@ -31,7 +31,12 @@ setup() {
     if [[ $dockercheck == "active" ]]
     then
     docker build -t techshop:1 .
-    docker run --name techshop -d -p 1433:1433 techshop:1
+    imagecheck=$(sudo docker images | grep -o "techshop")
+        if [[ $imagecheck == "techshop" ]]
+        then
+        docker run --name techshop -d -p 1433:1433 techshop:1
+        else
+        echo "A képfájl készítésébe hiba csúszott, az adatbázist nem tudjuk elindítani!"
     else
     echo "A docker nem aktív, próbálja meg telepíteni!"
     fi
@@ -39,11 +44,12 @@ setup() {
 }
 
 main() {
-    read -p "1. Docker telepítés\n 2. Adatbázis telepítés" func
+    printf "1. Docker telepítés\n 2. Adatbázis telepítés\n"
+    read -p "Válasszon:" func
     if [[ $func == "1" ]]
     then
     docker-setup
-    elif [[$func == "2" ]]
+    elif [[ $func == "2" ]]
     then
     setup
     fi
