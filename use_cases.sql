@@ -4,19 +4,27 @@ GO
 SELECT * FROM AllProducts
 GO
 -- NotOrderedProduct View
-USE techshop
-GO
 SELECT * FROM NotOrderedProduct
 GO
-SELECT DISTINCT(p.name) FROM Orders.order_list AS ol
-LEFT JOIN Product.products AS p
-ON p.id = ol.product_id
 -- OrderedProducts View
-USE techshop
-GO
 SELECT * FROM OrderedProducts
 GO
+-- TotalOrderValue View
+SELECT * FROM TotalOrderValue
+GO
 -- executing function
+-- ConcatName Function, id, persontype
+SELECT People.ConcatName(1, 'customer')
+GO
+-- ProductSum function
+SELECT Orders.ProductSum(1)
+GO
+-- MonthlyTotal function
+SELECT Orders.MonthlyTotal(01)
+GO
+-- MonthlyOrders function
+SELECT * FROM Orders.MonthlyOrders(2)
+GO
 INSERT INTO Product.component_speed (value) VALUES (120)
 USE techshop
 GO
@@ -26,12 +34,11 @@ select * from orders.order_list
 USE techshop
 GO
 -- List orders where the customerID is the parameter
-SELECT * FROM Orders.OrderList(6)
+select Orders.MonthlyTotal(1)
 GO
--- Monthly Orders function
-SELECT * FROM Orders.MonthlyOrders(1)
 use techshop
 go
+select * from Orders.orders
 -- executing productinfo procedure
 EXEC Product.ProductInfo 9
 GO

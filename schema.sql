@@ -263,7 +263,7 @@ GO
 CREATE VIEW OrderedProducts
 WITH SCHEMABINDING
 AS
-SELECT DISTINCT(p.name) AS ProductName,
+SELECT p.name AS ProductName,
 c.name AS CategoryName,
 p.price AS ProductPrice,
 SUM(ol.quantity) AS OrderQuantity,
@@ -277,6 +277,7 @@ GROUP BY p.name, c.name, p.price
 GO
 -- creating procedures
 -- Table variable, subselect
+-- ProductID alapján egy adott termék adatait kapjuk vissza table formában.
 CREATE PROCEDURE Product.ProductInfo
 @ProdID int
 AS
@@ -288,6 +289,8 @@ WHERE p.id = @ProdID
 SELECT * FROM @Result
 END
 GO
+-- Új kategóriát adhatunk meg, egy nevet vár az eljárás, a kimeneti változón
+-- kapjuk a hibaüzenetet, vagy a sikeres kategóriafelvétel üzenetét.
 CREATE PROCEDURE Product.AddCategory
 @CatName varchar(30),
 @Info varchar(60) OUTPUT
@@ -307,6 +310,7 @@ SET @Select = (SELECT name FROM Product.Categories WHERE name = @CatName)
 		SET @Info = CONCAT('Category ', @CatName, ' ', 'created with ID: ',' ',@CatID)
 		END
 GO
+-- Ez a következõ tárolt eljárás-hoz kapcsolódik.
 CREATE PROCEDURE Product.AddProd
 @ProdName varchar(30),
 @CatName varchar(30),
@@ -412,25 +416,64 @@ SET @CatSelect = (SELECT name FROM Product.Categories WHERE name = @CatName)
 		END
 GO
 -- creating function
-CREATE FUNCTION Orders.OrderList (@PersonID int)
-RETURNS TABLE
+-- PersonID és a személy típusa alapján az adott ember nevét egy varchar értékben kapjuk vissza.
+CREATE FUNCTION People.ConcatName (@PersonID int, @PersonType varchar(15))
+RETURNS varchar(100)
 AS
-RETURN
-	SELECT id FROM Orders.orders WHERE customer_id = @PersonID
+BEGIN
+DECLARE @result varchar(100)
+IF @PersonType = 'customer'
+	BEGIN
+	SET @result = (SELECT CONCAT(firstname, ' ', lastname) FROM People.customers WHERE id = @PersonID)
+	END
+ELSE
+	IF @PersonType = 'employee'
+		BEGIN
+		SET @result = (SELECT CONCAT(firstname, ' ', lastname) FROM People.employee WHERE id = @PersonID)
+		END
+	ELSE
+		BEGIN
+		SET @result = 'PersonType not valid!'
+		END
+RETURN @result
+END
+GO
+-- Egy adott rendelés értékét adja vissza.
+CREATE OR ALTER FUNCTION Orders.ProductSum (@OrderID int)
+RETURNS int
+AS
+BEGIN
+DECLARE @Result int = (
+SELECT SUM(p.price * quantity) FROM Orders.order_list AS ol
+LEFT JOIN Product.products AS p
+ON p.id = ol.product_id
+WHERE order_id = @OrderID)
+RETURN @Result
+END
+GO
+-- Kiszámolja a rendelések teljes összegét az adott hónapra
+CREATE OR ALTER FUNCTION Orders.MonthlyTotal (@Months int)
+RETURNS int
+AS
+	BEGIN
+	DECLARE @Result int = (
+	SELECT
+	SUM(order_value)
+	FROM Orders.orders
+	WHERE DATEPART(MM, order_date) = @Months)
+	RETURN @Result
+	END
 GO
 -- Visszaadja a rendeléseket havi bontásban, és a összes rendelés értékét a hónapban
 CREATE FUNCTION Orders.MonthlyOrders (@Month int)
 RETURNS TABLE
 AS
 RETURN
-	SELECT o.id AS OrderID, CONCAT(c.firstName, ' ',c.lastName) AS Customer, 
-	CONCAT(e.firstName, ' ', e.lastName) AS Employee,
-	CONCAT(order_value, ' ', 'USD') AS OrderValue, 
-	CONCAT(SUM(order_value) OVER (PARTITION BY DATEPART(MM, order_date)), ' ', 'USD') AS MonthlyValue,
-	DATEPART(MM, order_date) AS Month
-	FROM Orders.orders AS o
-	LEFT JOIN People.customers AS c ON c.id = o.customer_id
-	LEFT JOIN People.employee AS e ON e.id = o.employee_id
+	SELECT id AS OrderID,
+	People.ConcatName(customer_id, 'customer') AS Customer,
+	People.ConcatName(employee_id, 'employee') AS Employee,
+	CONCAT(order_value, ' ', 'USD') AS OrderValue
+	FROM Orders.orders
 	WHERE DATEPART(MM, order_date) = @Month
 GO
 -- application role
@@ -486,11 +529,6 @@ ON Orders.order_list
 FOR INSERT
 AS
 DECLARE @OrderID int = (SELECT order_id FROM inserted)
-DECLARE @SumValue int = (SELECT SUM(p.price * quantity) FROM Orders.order_list AS ol
-LEFT JOIN Product.products AS p
-ON p.id = ol.product_id
-WHERE order_id = @OrderID)
-	BEGIN
-	UPDATE Orders.orders SET order_value = order_value + @SumValue WHERE id = @OrderID
-	END
+DECLARE @SumValue int = (SELECT Orders.ProductSum(@OrderID))
+UPDATE Orders.orders SET order_value = @SumValue WHERE id = @OrderID
 GO
