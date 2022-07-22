@@ -50,8 +50,9 @@ main() {
     then
     echo "Az MSSQL-nek legalább 2 GB memóriára van szüksége!"
     else
-    printf " 1. Docker telepítés\n 2. Adatbázis telepítés\n"
-    read -p "Válasszon:" func
+    echo " Memória: $memcheck MB"
+    printf " Opciók:\n 1. Docker telepítés\n 2. Adatbázis telepítés\n"
+    read -p " Válasszon:" func
     if [[ $func == "1" ]]
     then
     docker-setup
