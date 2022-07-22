@@ -1,10 +1,5 @@
 #!/bin/bash
 docker-setup() {
-    memcheck=$(free -m  | grep ^Mem | tr -s ' ' | cut -d ' ' -f 2)
-    if [[ $memcheck -lt "2048" ]]
-    then
-    echo "Az MSSQL-nek legalább 2 GB memóriára van szüksége!"
-    else
         dockercheck=$(sudo systemctl status docker | grep -o "active")
         if [[ $dockercheck == "active" ]]
         then
@@ -28,7 +23,6 @@ docker-setup() {
         sudo usermod -aG docker $USER
         echo "Telepítés kész, ajánlott újból bejelentkezni!"
         fi
-    fi
     main
 }
 
@@ -51,6 +45,11 @@ setup() {
 }
 
 main() {
+    memcheck=$(free -m  | grep ^Mem | tr -s ' ' | cut -d ' ' -f 2)
+    if [[ $memcheck -lt "2048" ]]
+    then
+    echo "Az MSSQL-nek legalább 2 GB memóriára van szüksége!"
+    else
     printf " 1. Docker telepítés\n 2. Adatbázis telepítés\n"
     read -p "Válasszon:" func
     if [[ $func == "1" ]]
@@ -59,6 +58,7 @@ main() {
     elif [[ $func == "2" ]]
     then
     setup
+    fi
     fi
 }
 main
