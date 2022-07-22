@@ -39,8 +39,11 @@ setup() {
 }
 
 main() {
-    read -p "Indulhat a telepítés?(i/n)" func
-    if [[ $func == "i" ]]
+    read -p "1. Docker telepítés\n 2. Adatbázis telepítés" func
+    if [[ $func == "1" ]]
+    then
+    docker-setup
+    elif [[$func == "2" ]]
     then
     setup
     fi
