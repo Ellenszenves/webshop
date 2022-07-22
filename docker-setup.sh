@@ -30,6 +30,9 @@ setup() {
     dockercheck=$(sudo systemctl status docker | grep -o "active")
     if [[ $dockercheck == "active" ]]
     then
+    read -p "Admin jelszó: " passw
+    sed -i.bak "s/Password123!/$passw/g" Dockerfile
+    echo "A jelszót jól jegyezze meg, ezzel tud csak belépni a szerverre!"
     docker build -t techshop:1 .
     imagecheck=$(sudo docker images | grep -o "techshop")
         if [[ $imagecheck == "techshop" ]]
